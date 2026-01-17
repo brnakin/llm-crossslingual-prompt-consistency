@@ -1,9 +1,111 @@
 # Evaluating Cross-Lingual Prompt Consistency in Large Language Models
-**Version:** 1.0  
+**Version:** 2.0 (Post-Implementation)  
 **Date:** 17 January 2026  
 **Owner:** Baran Akin, Mehdi Farzin  
 **Supervisor:** Shan Faiz  
-**Decision Log:** Local-first execution (Ollama) to avoid request limits; Open-source LLMs only (no commercial baseline); Models: `gemma3:1b`, `llama3.2:1b`; LaBSE embeddings for open-text tasks only; Discrete-answer tasks evaluated via exact/normalized match; `temperature = 0.3`; `max_new_tokens = 256`; Two runs per prompt-language; Cross-lingual comparisons are paired by the same `run_id`; Intra-language stability baseline is measured as run1 vs run2 within each language.
+**Decision Log:** Local-first execution (Ollama) to avoid request limits; Open-source LLMs only (no commercial baseline); **Final Models:** `gemma3:1b`, `gemma3:4b`, `llama3.2:1b`, `llama3.2:3b`, `phi3:latest`, `phi4-mini:3.8b`; LaBSE embeddings for open-text tasks only; Discrete-answer tasks evaluated via exact/normalized match; `temperature = 0.3`; `max_new_tokens = 256`; Two runs per prompt-language; Cross-lingual comparisons are paired by the same `run_id`; Intra-language stability baseline is measured as run1 vs run2 within each language.
+
+---
+
+## IMPLEMENTATION STATUS SUMMARY
+
+> **Bu bölüm, projenin gerçek uygulaması ile orijinal PRD arasındaki farklılıkları belgelemektedir.**
+
+### ✅ Başarıyla Tamamlanan Hedefler
+
+| Hedef | Durum | Notlar |
+|-------|-------|--------|
+| G1: Cross-lingual tutarlılık ölçümü | ✅ Tamamlandı | 288 karşılaştırma yapıldı |
+| G2: Görev türü analizi | ✅ Tamamlandı | 5 görev türü analiz edildi |
+| G3: Tekrarlanabilir metrikler | ✅ Tamamlandı | 31 görselleştirme üretildi |
+| G4: Niteliksel kanıt seti | ✅ Tamamlandı | 29 örnek flaglendi |
+
+### 📝 Orijinal Plandan Sapmalar
+
+#### 1. Model Listesi Değişiklikleri
+
+**Orijinal Plan:**
+- `gemma3:1b`
+- `llama3.2:1b`
+
+**Gerçek Uygulama:**
+- `gemma3:1b` ✅
+- `gemma3:4b` ✅ (eklendi)
+- `llama3.2:1b` ✅
+- `llama3.2:3b` ✅ (eklendi)
+- `phi3:latest` ✅ (eklendi)
+- `phi4-mini:3.8b` ✅ (eklendi)
+- ~~`qwen3:4b`~~ ❌ (kaldırıldı - boş yanıt sorunu)
+
+**Sebep:** Daha kapsamlı model karşılaştırması için model çeşitliliği artırıldı. qwen3:4b, 93/120 boş yanıt ürettiği için kaldırıldı.
+
+#### 2. Non-Compliance Detection Değişiklikleri
+
+**Orijinal Plan:**
+- Basit format kontrolü
+
+**Gerçek Uygulama (iteratif geliştirme):**
+1. **İlk versiyon:** Çok katı (84 non-compliant)
+2. **Düzeltme 1:** Uzunluk eşiği 100→200
+3. **Düzeltme 2:** Çok dilli etiket desteği (DE: positiv/negativ, TR: olumlu/olumsuz)
+4. **Düzeltme 3:** A/B/C eşleşme esnekliği
+5. **Final versiyon:** Sadece format kontrolü, doğruluk kontrolü kaldırıldı
+
+**Sonuç:** 84 → 1 non-compliant (phi3:latest, TR, Prompt 7)
+
+#### 3. Retry Mekanizması Eklendi
+
+**Orijinal Plan:**
+- Retry mekanizması opsiyonel
+
+**Gerçek Uygulama:**
+- Non-compliant yanıtlar için stricter prompt wrapper ile retry
+- Retry sonrası hala non-compliant olanlar qualitative review için saklandı
+
+#### 4. Ek Görselleştirmeler
+
+**Orijinal Plan:**
+- Heatmap + Distribution plot
+
+**Gerçek Uygulama (31 dosya):**
+- Model comparison (1)
+- Heatmaps per model (6)
+- Distributions per model (6)
+- Task comparisons per model (6)
+- Stability plots per model (6)
+- Discrete summaries per model (6)
+
+#### 5. Drift Type Kategorileri Eklendi
+
+**Orijinal Plan:**
+- Basit "low similarity" flagging
+
+**Gerçek Uygulama:**
+- 5 drift type tanımlandı:
+  1. Semantic Drift
+  2. Format Drift
+  3. Factual Drift
+  4. Style Drift
+  5. Hallucination
+
+### 📊 Uygulama Metrikleri
+
+| Metrik | Plan | Gerçek | Durum |
+|--------|------|--------|-------|
+| Toplam yanıt | 120 × M | 720 | ✅ (M=6) |
+| Coverage | %100 | %100 | ✅ |
+| Non-compliant rate | <%5 | %0.14 | ✅ |
+| Görselleştirme | 2+ | 31 | ✅ |
+| Flagged örnek | 6+ | 29 | ✅ |
+
+### 🔧 Teknik Zorluklar ve Çözümleri
+
+| Zorluk | Çözüm |
+|--------|-------|
+| CSV parsing hatası (German quotes) | `quoting=csv.QUOTE_ALL` ile yeniden üretim |
+| qwen3:4b boş yanıtları | Model ve verisi kaldırıldı |
+| Katı non-compliance tespiti | İteratif refinement, çok dilli destek |
+| Türkçe etiket tanıma | olumlu/olumsuz, positiv/negativ eklendi |
 
 ---
 
@@ -210,9 +312,14 @@ Prepend the following control line to every prompt:
 - `max_new_tokens` corresponds to `num_predict` in Ollama.
 - Keep other sampling parameters at defaults unless explicitly set; log the effective parameters used.
 
-**Models (confirmed, Ollama tags)**
-- `gemma3:1b`
-- `llama3.2:1b`
+**Models (final implementation, Ollama tags)**
+- `gemma3:1b` - Google, 1B parameters
+- `gemma3:4b` - Google, 4B parameters
+- `llama3.2:1b` - Meta, 1B parameters
+- `llama3.2:3b` - Meta, 3B parameters
+- `phi3:latest` - Microsoft, 3.8B parameters
+- `phi4-mini:3.8b` - Microsoft, 3.8B parameters
+- ~~`qwen3:4b`~~ - Removed (empty response issues)
 
 **Fixed decoding parameters**
 - `temperature = 0.3`
@@ -224,9 +331,15 @@ For M models, total inference calls:
 - Calls = 20 prompts x 3 languages x 2 runs x M
 - Calls = 120 x M
 
+**Actual implementation (M=6):**
+- Total calls = 120 x 6 = **720 responses**
+- Inference time: ~8 minutes (local Ollama)
+
 Optional public dataset extension adds:
 - Calls_additional = N x 3 x 2 x M = 6N x M
 Where N is the number of added public items (EN/DE/TR triplets).
+
+**Note:** qwen3:4b was initially included (M=7) but removed after 93/120 empty responses.
 
 ### 3.4 Embedding and Similarity (LaBSE-only, open-text tasks)
 **Applicability**
@@ -465,5 +578,56 @@ These checks are the primary evaluation signal for classification, reasoning, an
 
 ---
 
+## 11) Final Results Summary (Post-Implementation)
+
+### Key Findings
+
+| Finding | Value | Significance |
+|---------|-------|--------------|
+| Best overall model | **gemma3:4b** | 0.70 average cross-lingual similarity |
+| Worst overall model | **phi3:latest** | 0.57 average (severe TR issues) |
+| Most consistent task | **Factual** | 95.8% cross-lingual match rate |
+| Least consistent task | **Reasoning** | 37.5% cross-lingual match rate |
+| Hardest language pair | **EN-TR** | 0.586 average similarity |
+| Easiest language pair | **DE-TR** | 0.670 average similarity |
+
+### Model Rankings (Cross-Lingual Consistency)
+
+| Rank | Model | Avg Similarity | Discrete Match |
+|------|-------|----------------|----------------|
+| 1 | gemma3:4b | 0.6969 | 91.7% |
+| 2 | phi4-mini:3.8b | 0.6740 | 70.8% |
+| 3 | gemma3:1b | 0.6613 | 75.0% |
+| 4 | llama3.2:3b | 0.6172 | 50.0% |
+| 5 | llama3.2:1b | 0.6046 | 54.2% |
+| 6 | phi3:latest | 0.5696 | 45.8% |
+
+### Recommendations
+
+| Use Case | Recommended Model | Avoid |
+|----------|-------------------|-------|
+| Classification (all languages) | gemma3:4b, gemma3:1b | llama3.2:1b |
+| Factual Q&A | Any model | - |
+| Summarization | gemma3:4b, phi4-mini:3.8b | phi3:latest |
+| Creative tasks | gemma3:4b (EN/DE only) | phi3:latest (TR) |
+| Turkish language support | gemma3:4b | phi3:latest |
+
+### Deliverables Produced
+
+| Deliverable | Location | Status |
+|-------------|----------|--------|
+| Response archive | `data/responses.jsonl` | ✅ 720 records |
+| Cross-lingual metrics | `data/metrics.csv` | ✅ 288 records |
+| Stability metrics | `data/stability.csv` | ✅ 357 records |
+| Discrete metrics | `data/task_metrics.csv` | ✅ 145 records |
+| Visualizations | `outputs/plots/` | ✅ 31 files |
+| Model summaries | `outputs/reports/` | ✅ 7 files |
+| Final report | `REPORT_FINAL.md` | ✅ ~700 lines |
+
+---
+
 **End of Document**
 
+**Document History:**
+- v1.0 (17 Jan 2026): Initial PRD/TPRD
+- v2.0 (17 Jan 2026): Post-implementation update with actual results and deviations
