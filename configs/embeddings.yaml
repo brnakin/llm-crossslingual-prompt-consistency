@@ -1,0 +1,14 @@
+# Embedding configuration for semantic similarity computation
+# LaBSE is used for cross-lingual semantic similarity
+
+embedding:
+  model_name: sentence-transformers/LaBSE
+  # LaBSE produces 768-dimensional embeddings
+  embedding_dim: 768
+  # Normalize embeddings for cosine similarity
+  normalize: true
+
+# Similarity thresholds
+similarity:
+  # Flag bottom 10% as low similarity for qualitative review
+  low_similarity_percentile: 10

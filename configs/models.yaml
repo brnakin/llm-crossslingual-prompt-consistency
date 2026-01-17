@@ -1,0 +1,34 @@
+# Model configuration for cross-lingual consistency evaluation
+# Models: Open-source LLMs available via Ollama
+
+models:
+  - id: phi3:latest
+    name: Phi-3
+    provider: ollama
+  - id: phi4-mini:3.8b
+    name: Phi-4 Mini 3.8B
+    provider: ollama
+  - id: llama3.2:1b
+    name: Llama 3.2 1B
+    provider: ollama
+  - id: llama3.2:3b
+    name: Llama 3.2 3B
+    provider: ollama
+  - id: gemma3:4b
+    name: Gemma 3 4B
+    provider: ollama
+  - id: gemma3:1b
+    name: Gemma 3 1B
+    provider: ollama
+
+# Fixed decoding parameters
+inference:
+  temperature: 0.3
+  num_predict: 256  # Ollama's equivalent of max_new_tokens
+  runs_per_prompt: 2
+
+# Response language control lines (prepended to each prompt)
+control_lines:
+  EN: "Respond in English. Follow the output format exactly. Do not add explanations."
+  DE: "Antworte auf Deutsch. Halte dich exakt an das Ausgabeformat. Keine Erklärungen."
+  TR: "Türkçe yanıt ver. Çıktı formatına tam uy. Açıklama ekleme."

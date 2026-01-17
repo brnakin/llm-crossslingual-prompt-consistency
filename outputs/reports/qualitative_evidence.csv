@@ -1,0 +1,7 @@
+type,model_id,prompt_id,task_type,pair,similarity,drift_type,notes
+open_text,phi3:latest,19,creative,EN-TR,0.2403697967529297,,
+open_text,llama3.2:1b,20,creative,EN-TR,0.2852136492729187,,
+open_text,phi3:latest,18,creative,EN-TR,0.2974834442138672,,
+discrete,gemma3:4b,11,reasoning,EN-DE-TR,,,"EN=1, DE=78, TR=1"
+discrete,gemma3:4b,11,reasoning,EN-DE-TR,,,"EN=1, DE=78, TR=1"
+discrete,gemma3:1b,10,reasoning,EN-DE-TR,,,"EN=22.5, DE=60, TR=18"

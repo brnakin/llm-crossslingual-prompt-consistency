@@ -1,0 +1,13 @@
+Category,Metric,Mean,Std,Count
+Cross-Lingual (Open-Text),EN-DE Similarity,0.6806153357028961,0.09028860457235119,16
+Cross-Lingual (Open-Text),EN-TR Similarity,0.6104697734117508,0.12471385210396223,16
+Cross-Lingual (Open-Text),DE-TR Similarity,0.7308725751936436,0.09145736072263834,16
+Cross-Lingual (Discrete),Classification Match Rate,0.75,,8
+Cross-Lingual (Discrete),Reasoning Match Rate,0.375,,8
+Cross-Lingual (Discrete),Factual Match Rate,1.0,,8
+Stability (open_text_cosine),EN Run1-vs-Run2,0.9088607132434845,0.04369959629015606,8
+Stability (open_text_cosine),DE Run1-vs-Run2,0.8520753234624863,0.07226669138424759,8
+Stability (open_text_cosine),TR Run1-vs-Run2,0.8212786838412285,0.10930471452067692,8
+Stability (discrete_match),EN Run1-vs-Run2,0.9166666666666666,0.28867513459481287,12
+Stability (discrete_match),DE Run1-vs-Run2,1.0,0.0,12
+Stability (discrete_match),TR Run1-vs-Run2,0.9166666666666666,0.28867513459481287,12
